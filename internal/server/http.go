@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
@@ -32,13 +33,13 @@ func New(provider tsviewer.Provider) (*Server, error) {
 }
 
 // Handler returns the HTTP handler with all routes configured
-func (s *Server) Handler() http.Handler {
+func (s *Server) Handler() (http.Handler, error) {
 	mux := http.NewServeMux()
 
 	// Serve static files
 	staticFS, err := fs.Sub(assets.FS, "static")
 	if err != nil {
-		log.Fatalf("Failed to get static subdirectory: %v", err)
+		return nil, fmt.Errorf("failed to extract static assets subdirectory: %w", err)
 	}
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 
@@ -46,7 +47,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/", s.handleIndex)
 	mux.HandleFunc("/healthz", s.handleHealthz)
 
-	return mux
+	return mux, nil
 }
 
 // handleIndex renders the main TeamSpeak viewer page

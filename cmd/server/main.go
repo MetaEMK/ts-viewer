@@ -22,7 +22,7 @@ func main() {
 	}
 	log.Printf("Starting TeamSpeak Viewer with config: %s", cfg)
 
-	// Create provider (currently dummy)
+	// Create provider (using dummy implementation for testing)
 	provider := tsviewer.NewDummyProvider()
 
 	// Create HTTP server
@@ -31,10 +31,16 @@ func main() {
 		log.Fatalf("Failed to create server: %v", err)
 	}
 
+	// Get HTTP handler
+	handler, err := srv.Handler()
+	if err != nil {
+		log.Fatalf("Failed to setup HTTP handler: %v", err)
+	}
+
 	// Setup HTTP server
 	httpServer := &http.Server{
 		Addr:         cfg.HTTPAddr,
-		Handler:      srv.Handler(),
+		Handler:      handler,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,

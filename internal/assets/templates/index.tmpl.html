@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .ServerName }} - TeamSpeak Viewer</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎙️ {{ .ServerName }}</h1>
+        </header>
+        
+        <main>
+            <div class="server-tree">
+                {{ range .Channels }}
+                    {{ template "channel" . }}
+                {{ end }}
+            </div>
+        </main>
+        
+        <footer>
+            <p>TeamSpeak Viewer - Static Data Demo</p>
+        </footer>
+    </div>
+</body>
+</html>
+
+{{ define "channel" }}
+<div class="channel">
+    <div class="channel-header">
+        <span class="channel-icon">📁</span>
+        <span class="channel-name">{{ .Name }}</span>
+    </div>
+    
+    {{ if .Clients }}
+    <div class="clients">
+        {{ range .Clients }}
+        <div class="client">
+            <span class="client-icon">👤</span>
+            <span class="client-name">{{ .Nickname }}</span>
+            <span class="client-status">
+                {{ if .IsMuted }}🔇{{ end }}
+                {{ if .IsDeaf }}🔕{{ end }}
+            </span>
+        </div>
+        {{ end }}
+    </div>
+    {{ end }}
+    
+    {{ if .Children }}
+    <div class="children">
+        {{ range .Children }}
+            {{ template "channel" . }}
+        {{ end }}
+    </div>
+    {{ end }}
+</div>
+{{ end }}

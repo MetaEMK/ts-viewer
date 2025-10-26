@@ -1,84 +1,83 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
-	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
+	"github.com/gofiber/template/html/v2"
 
 	"github.com/MetaEMK/ts-viewer/internal/assets"
 	"github.com/MetaEMK/ts-viewer/internal/tsviewer"
 )
 
-// Server wraps the HTTP server and dependencies
+// Server wraps the Fiber app and dependencies
 type Server struct {
 	provider tsviewer.Provider
-	tmpl     *template.Template
+	app      *fiber.App
 }
 
-// New creates a new Server instance
+// New creates a new Server instance with Fiber
 func New(provider tsviewer.Provider) (*Server, error) {
-	// Parse embedded templates
-	tmpl, err := template.ParseFS(assets.FS, "templates/*.html")
-	if err != nil {
-		return nil, err
+	// Create template engine from embedded assets
+	engine := html.NewFileSystem(http.FS(assets.FS), ".html")
+
+	// Create Fiber app with template engine
+	app := fiber.New(fiber.Config{
+		Views: engine,
+	})
+
+	s := &Server{
+		provider: provider,
+		app:      app,
 	}
 
-	return &Server{
-		provider: provider,
-		tmpl:     tmpl,
-	}, nil
+	// Setup routes
+	s.setupRoutes()
+
+	return s, nil
 }
 
-// Handler returns the HTTP handler with all routes configured
-func (s *Server) Handler() (http.Handler, error) {
-	mux := http.NewServeMux()
-
-	// Serve static files
+// setupRoutes configures all application routes
+func (s *Server) setupRoutes() {
+	// Serve static files from embedded assets
 	staticFS, err := fs.Sub(assets.FS, "static")
 	if err != nil {
-		return nil, fmt.Errorf("failed to extract static assets subdirectory: %w", err)
+		log.Fatalf("Failed to create static filesystem: %v", err)
 	}
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
+
+	s.app.Use("/static", filesystem.New(filesystem.Config{
+		Root: http.FS(staticFS),
+	}))
 
 	// Routes
-	mux.HandleFunc("/", s.handleIndex)
-	mux.HandleFunc("/healthz", s.handleHealthz)
+	s.app.Get("/", s.handleIndex)
+	s.app.Get("/healthz", s.handleHealthz)
+}
 
-	return mux, nil
+// App returns the Fiber app instance
+func (s *Server) App() *fiber.App {
+	return s.app
 }
 
 // handleIndex renders the main TeamSpeak viewer page
-func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-
+func (s *Server) handleIndex(c *fiber.Ctx) error {
 	// Fetch overview from provider
-	overview, err := s.provider.FetchOverview(r.Context())
+	overview, err := s.provider.FetchOverview(c.Context())
 	if err != nil {
 		log.Printf("Error fetching overview: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
 	}
 
 	// Render template
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := s.tmpl.ExecuteTemplate(w, "index.tmpl.html", overview); err != nil {
-		log.Printf("Error rendering template: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	return c.Render("templates/index.tmpl", overview, "")
 }
 
 // handleHealthz returns a simple health check response
-func (s *Server) handleHealthz(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+func (s *Server) handleHealthz(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
 		"status": "ok",
 	})
 }

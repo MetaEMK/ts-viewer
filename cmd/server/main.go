@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/MetaEMK/ts-viewer/internal/config"
 	"github.com/MetaEMK/ts-viewer/internal/server"
@@ -25,31 +22,19 @@ func main() {
 	// Create provider (using dummy implementation for testing)
 	provider := tsviewer.NewDummyProvider()
 
-	// Create HTTP server
+	// Create server with Fiber
 	srv, err := server.New(provider)
 	if err != nil {
 		log.Fatalf("Failed to create server: %v", err)
 	}
 
-	// Get HTTP handler
-	handler, err := srv.Handler()
-	if err != nil {
-		log.Fatalf("Failed to setup HTTP handler: %v", err)
-	}
-
-	// Setup HTTP server
-	httpServer := &http.Server{
-		Addr:         cfg.HTTPAddr,
-		Handler:      handler,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
-	}
+	// Get Fiber app
+	app := srv.App()
 
 	// Start server in a goroutine
 	go func() {
 		log.Printf("Server listening on %s", cfg.HTTPAddr)
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := app.Listen(cfg.HTTPAddr); err != nil {
 			log.Fatalf("Server failed: %v", err)
 		}
 	}()
@@ -60,10 +45,7 @@ func main() {
 	<-quit
 
 	log.Println("Shutting down server...")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := httpServer.Shutdown(ctx); err != nil {
+	if err := app.Shutdown(); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 

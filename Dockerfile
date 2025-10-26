@@ -11,7 +11,7 @@ RUN go mod download
 COPY . .
 
 # Build the binary
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-w -s' -o ts-viewer ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-w -s' -o ts-viewer ./cmd/server
 
 # Runtime stage
 FROM alpine:latest

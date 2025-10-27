@@ -28,6 +28,11 @@ func NewTeamSpeakProvider(host string, port int) *TeamSpeakProvider {
 
 // FetchOverview connects to the TeamSpeak server and fetches the current state
 func (t *TeamSpeakProvider) FetchOverview(ctx context.Context) (*ServerOverview, error) {
+	// Check if context is already cancelled
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	// Create client connection
 	addr := fmt.Sprintf("%s:%d", t.host, t.port)
 	client, err := ts3.NewClient(addr, ts3.Timeout(10*time.Second))
@@ -111,11 +116,11 @@ func (t *TeamSpeakProvider) getClientsInChannel(clients []*ts3.OnlineClient, cha
 			}
 
 			// Check mute/deaf status if available
-			if c.OnlineClientExt != nil && c.OnlineClientVoice != nil {
-				if c.InputMuted != nil && *c.InputMuted {
+			if c.OnlineClientExt != nil && c.OnlineClientExt.OnlineClientVoice != nil {
+				if c.OnlineClientExt.OnlineClientVoice.InputMuted != nil && *c.OnlineClientExt.OnlineClientVoice.InputMuted {
 					client.IsMuted = true
 				}
-				if c.OutputMuted != nil && *c.OutputMuted {
+				if c.OnlineClientExt.OnlineClientVoice.OutputMuted != nil && *c.OnlineClientExt.OnlineClientVoice.OutputMuted {
 					client.IsDeaf = true
 				}
 			}

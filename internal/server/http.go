@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -54,6 +55,7 @@ func (s *Server) setupRoutes() {
 
 	// Routes
 	s.app.Get("/", s.handleIndex)
+	s.app.Get("/ts-view", s.handleTSView)
 	s.app.Get("/healthz", s.handleHealthz)
 }
 
@@ -80,4 +82,34 @@ func (s *Server) handleHealthz(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status": "ok",
 	})
+}
+
+// handleTSView renders the TeamSpeak viewer page for a specific server
+// Accepts query parameters: ip or host (the TeamSpeak server address)
+func (s *Server) handleTSView(c *fiber.Ctx) error {
+	// Get the server address from query parameters
+	host := c.Query("ip")
+	if host == "" {
+		host = c.Query("host")
+	}
+
+	if host == "" {
+		return c.Status(fiber.StatusBadRequest).SendString("Missing required parameter: ip or host")
+	}
+
+	// Create a TeamSpeak provider for this specific server
+	// Using default ServerQuery port (10011)
+	tsProvider := tsviewer.NewTeamSpeakProvider(host, 0)
+
+	// Fetch overview from the TeamSpeak server
+	overview, err := tsProvider.FetchOverview(c.Context())
+	if err != nil {
+		log.Printf("Error fetching TeamSpeak data from %s: %v", host, err)
+		return c.Status(fiber.StatusInternalServerError).SendString(
+			fmt.Sprintf("Failed to connect to TeamSpeak server at %s: %v", host, err),
+		)
+	}
+
+	// Render template
+	return c.Render("templates/index.tmpl", overview, "")
 }

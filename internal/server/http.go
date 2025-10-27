@@ -16,8 +16,8 @@ import (
 
 // Server wraps the Fiber app and dependencies
 type Server struct {
-	provider tsviewer.Provider
-	app      *fiber.App
+	service *tsviewer.Service
+	app     *fiber.App
 }
 
 // New creates a new Server instance with Fiber
@@ -30,9 +30,12 @@ func New(provider tsviewer.Provider) (*Server, error) {
 		Views: engine,
 	})
 
+	// Create service layer
+	service := tsviewer.NewService(provider)
+
 	s := &Server{
-		provider: provider,
-		app:      app,
+		service: service,
+		app:     app,
 	}
 
 	// Setup routes
@@ -66,8 +69,8 @@ func (s *Server) App() *fiber.App {
 
 // handleIndex renders the main TeamSpeak viewer page
 func (s *Server) handleIndex(c *fiber.Ctx) error {
-	// Fetch overview from provider
-	overview, err := s.provider.FetchOverview(c.Context())
+	// Fetch overview from service
+	overview, err := s.service.GetServerOverview(c.Context())
 	if err != nil {
 		log.Printf("Error fetching overview: %v", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
@@ -85,7 +88,7 @@ func (s *Server) handleHealthz(c *fiber.Ctx) error {
 }
 
 // handleTSView renders the TeamSpeak viewer page for a specific server
-// Accepts query parameters: ip or host (the TeamSpeak server address)
+// Accepts query parameters: ip or host (the TeamSpeak server address), and port (optional)
 func (s *Server) handleTSView(c *fiber.Ctx) error {
 	// Get the server address from query parameters
 	host := c.Query("ip")
@@ -97,12 +100,11 @@ func (s *Server) handleTSView(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Missing required parameter: ip or host")
 	}
 
-	// Create a TeamSpeak provider for this specific server
-	// Using default ServerQuery port (10011)
-	tsProvider := tsviewer.NewTeamSpeakProvider(host, 0)
+	// Get optional port parameter
+	port := c.Query("port")
 
-	// Fetch overview from the TeamSpeak server
-	overview, err := tsProvider.FetchOverview(c.Context())
+	// Use service layer to fetch overview
+	overview, err := s.service.GetServerOverviewByAddress(c.Context(), host, port)
 	if err != nil {
 		log.Printf("Error fetching TeamSpeak data from %s: %v", host, err)
 		return c.Status(fiber.StatusInternalServerError).SendString(

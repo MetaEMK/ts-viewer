@@ -3,18 +3,21 @@ package tsviewer
 import (
 	"context"
 	"fmt"
-	"strconv"
+
+	"github.com/MetaEMK/ts-viewer/internal/config"
 )
 
 // Service handles business logic for TeamSpeak operations
 type Service struct {
 	defaultProvider Provider
+	config          *config.Config
 }
 
 // NewService creates a new TeamSpeak service instance
-func NewService(defaultProvider Provider) *Service {
+func NewService(defaultProvider Provider, cfg *config.Config) *Service {
 	return &Service{
 		defaultProvider: defaultProvider,
+		config:          cfg,
 	}
 }
 
@@ -23,35 +26,31 @@ func (s *Service) GetServerOverview(ctx context.Context) (*ServerOverview, error
 	return s.defaultProvider.FetchOverview(ctx)
 }
 
-// GetServerOverviewByAddress retrieves the server overview from a specific TeamSpeak server
+// GetServerOverviewByName retrieves the server overview from a configured TeamSpeak server
 // Parameters:
 //   - ctx: Context for cancellation and timeout
-//   - host: The hostname or IP address of the TeamSpeak server
-//   - portStr: The port number as a string (optional, defaults to 10011)
+//   - serverName: The name of the server as defined in the configuration
 //
-// Returns the server overview or an error if connection fails
-func (s *Service) GetServerOverviewByAddress(ctx context.Context, host string, portStr string) (*ServerOverview, error) {
-	// Validate host
-	if host == "" {
-		return nil, fmt.Errorf("host cannot be empty")
-	}
-
-	// Parse port if provided
-	port := 0 // 0 will default to 10011 in the provider
-	if portStr != "" {
-		parsedPort, err := strconv.Atoi(portStr)
-		if err != nil {
-			return nil, fmt.Errorf("invalid port number: %w", err)
-		}
-		if parsedPort < 1 || parsedPort > 65535 {
-			return nil, fmt.Errorf("port must be between 1 and 65535")
-		}
-		port = parsedPort
+// Returns the server overview or an error if connection fails or server is not found
+func (s *Service) GetServerOverviewByName(ctx context.Context, serverName string) (*ServerOverview, error) {
+	// Get server configuration
+	serverCfg, ok := s.config.GetServer(serverName)
+	if !ok {
+		return nil, fmt.Errorf("server '%s' not found in configuration", serverName)
 	}
 
 	// Create provider for this specific server
-	provider := NewTeamSpeakProvider(host, port)
+	provider := NewTeamSpeakProvider(serverCfg.Host, serverCfg.Port)
 
 	// Fetch overview
 	return provider.FetchOverview(ctx)
+}
+
+// ListServers returns a list of configured server names
+func (s *Service) ListServers() []string {
+	names := make([]string, 0, len(s.config.Servers))
+	for name := range s.config.Servers {
+		names = append(names, name)
+	}
+	return names
 }

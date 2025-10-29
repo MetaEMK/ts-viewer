@@ -40,7 +40,7 @@ func (s *Service) GetServerOverviewByName(ctx context.Context, serverName string
 	}
 
 	// Create provider for this specific server
-	provider := NewTeamSpeakProvider(serverCfg.Host, serverCfg.Port)
+	provider := NewTeamSpeakProvider(serverCfg.Host, serverCfg.Port, serverCfg.Sid)
 
 	// Fetch overview
 	return provider.FetchOverview(ctx)

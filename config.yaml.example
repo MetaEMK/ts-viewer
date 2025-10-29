@@ -13,6 +13,7 @@ servers:
   production:
     host: "ts.example.com"
     port: 10011
+    sid: 1                   # Optional: Virtual server ID (default: 1)
     username: "serveradmin"  # Optional: for authenticated connections
     password: "secret123"    # Optional: for authenticated connections
 
@@ -21,10 +22,11 @@ servers:
   dev:
     host: "192.168.1.100"
     port: 10011
-    # username and password are optional
+    # sid, username and password are optional
 
-  # Server with custom port
+  # Server with custom port and sid
   # Access via: http://localhost:8080/ts-view/custom
   custom:
     host: "10.0.0.5"
     port: 9987
+    sid: 2                   # Connect to virtual server ID 2

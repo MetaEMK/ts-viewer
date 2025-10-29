@@ -70,6 +70,7 @@ servers:
   production:
     host: "ts.example.com"
     port: 10011
+    sid: 1                   # Optional: Virtual server ID
     username: "serveradmin"  # Optional
     password: "secret123"    # Optional
 
@@ -77,6 +78,7 @@ servers:
   dev:
     host: "192.168.1.100"
     port: 10011
+    sid: 2                   # Different virtual server ID
 ```
 
 #### Configuration Options
@@ -89,6 +91,7 @@ servers:
 Each server in the `servers` map requires:
 - `host`: TeamSpeak server hostname or IP address (required)
 - `port`: ServerQuery port (default: `10011` if not specified)
+- `sid`: Virtual server ID (default: `1` if not specified)
 - `username`: ServerQuery username (optional, for authenticated connections)
 - `password`: ServerQuery password (optional, for authenticated connections)
 

@@ -12,17 +12,23 @@ import (
 type TeamSpeakProvider struct {
 	host string
 	port int
+	sid  int
 }
 
 // NewTeamSpeakProvider creates a new TeamSpeak provider for the given host
 // If port is 0, it defaults to 10011 (standard ServerQuery port)
-func NewTeamSpeakProvider(host string, port int) *TeamSpeakProvider {
+// If sid is 0, it defaults to 1 (first virtual server)
+func NewTeamSpeakProvider(host string, port int, sid int) *TeamSpeakProvider {
 	if port == 0 {
 		port = 10011
+	}
+	if sid == 0 {
+		sid = 1
 	}
 	return &TeamSpeakProvider{
 		host: host,
 		port: port,
+		sid:  sid,
 	}
 }
 
@@ -41,10 +47,9 @@ func (t *TeamSpeakProvider) FetchOverview(ctx context.Context) (*ServerOverview,
 	}
 	defer client.Close()
 
-	// Use the first virtual server (most common setup)
-	// In production, this could be configurable or queried
-	if err := client.Use(1); err != nil {
-		return nil, fmt.Errorf("failed to select virtual server: %w", err)
+	// Use the configured virtual server
+	if err := client.Use(t.sid); err != nil {
+		return nil, fmt.Errorf("failed to select virtual server %d: %w", t.sid, err)
 	}
 
 	// Fetch server info

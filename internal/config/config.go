@@ -18,6 +18,7 @@ type Config struct {
 type ServerConfig struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
+	Sid      int    `yaml:"sid,omitempty"`
 	Username string `yaml:"username,omitempty"`
 	Password string `yaml:"password,omitempty"`
 }
@@ -55,6 +56,9 @@ func Load() (*Config, error) {
 	for name, server := range cfg.Servers {
 		if server.Port == 0 {
 			server.Port = 10011
+		}
+		if server.Sid == 0 {
+			server.Sid = 1
 		}
 		cfg.Servers[name] = server
 	}

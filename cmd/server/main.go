@@ -23,7 +23,7 @@ func main() {
 	provider := tsviewer.NewDummyProvider()
 
 	// Create server with Fiber
-	srv, err := server.New(provider)
+	srv, err := server.New(provider, cfg)
 	if err != nil {
 		log.Fatalf("Failed to create server: %v", err)
 	}

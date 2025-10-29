@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -10,17 +11,18 @@ import (
 	"github.com/gofiber/template/html/v2"
 
 	"github.com/MetaEMK/ts-viewer/internal/assets"
+	"github.com/MetaEMK/ts-viewer/internal/config"
 	"github.com/MetaEMK/ts-viewer/internal/tsviewer"
 )
 
 // Server wraps the Fiber app and dependencies
 type Server struct {
-	provider tsviewer.Provider
-	app      *fiber.App
+	service *tsviewer.Service
+	app     *fiber.App
 }
 
 // New creates a new Server instance with Fiber
-func New(provider tsviewer.Provider) (*Server, error) {
+func New(provider tsviewer.Provider, cfg *config.Config) (*Server, error) {
 	// Create template engine from embedded assets
 	engine := html.NewFileSystem(http.FS(assets.FS), ".html")
 
@@ -29,9 +31,12 @@ func New(provider tsviewer.Provider) (*Server, error) {
 		Views: engine,
 	})
 
+	// Create service layer
+	service := tsviewer.NewService(provider, cfg)
+
 	s := &Server{
-		provider: provider,
-		app:      app,
+		service: service,
+		app:     app,
 	}
 
 	// Setup routes
@@ -54,6 +59,7 @@ func (s *Server) setupRoutes() {
 
 	// Routes
 	s.app.Get("/", s.handleIndex)
+	s.app.Get("/ts-view/:server", s.handleTSView)
 	s.app.Get("/healthz", s.handleHealthz)
 }
 
@@ -64,8 +70,8 @@ func (s *Server) App() *fiber.App {
 
 // handleIndex renders the main TeamSpeak viewer page
 func (s *Server) handleIndex(c *fiber.Ctx) error {
-	// Fetch overview from provider
-	overview, err := s.provider.FetchOverview(c.Context())
+	// Fetch overview from service
+	overview, err := s.service.GetServerOverview(c.Context())
 	if err != nil {
 		log.Printf("Error fetching overview: %v", err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
@@ -80,4 +86,27 @@ func (s *Server) handleHealthz(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status": "ok",
 	})
+}
+
+// handleTSView renders the TeamSpeak viewer page for a specific server
+// Accepts path parameter: server (the server name as configured in config.yaml)
+func (s *Server) handleTSView(c *fiber.Ctx) error {
+	// Get the server name from path parameter
+	serverName := c.Params("server")
+
+	if serverName == "" {
+		return c.Status(fiber.StatusBadRequest).SendString("Missing required parameter: server name")
+	}
+
+	// Use service layer to fetch overview by server name
+	overview, err := s.service.GetServerOverviewByName(c.Context(), serverName)
+	if err != nil {
+		log.Printf("Error fetching TeamSpeak data for server '%s': %v", serverName, err)
+		return c.Status(fiber.StatusInternalServerError).SendString(
+			fmt.Sprintf("Failed to connect to TeamSpeak server '%s': %v", serverName, err),
+		)
+	}
+
+	// Render template
+	return c.Render("templates/index.tmpl", overview, "")
 }

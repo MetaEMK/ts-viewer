@@ -50,24 +50,60 @@ docker run -p 8080:8080 ts-viewer
 
 ### Configuration
 
-The application is configured via environment variables:
+The application is configured via a YAML configuration file (`config.yaml`). Copy the example file to get started:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `HTTP_ADDR` | `:8080` | HTTP server listen address |
-| `TS_SERVER_URL` | `""` | TeamSpeak server URL (not used yet) |
-| `TS_API_TOKEN` | `""` | TeamSpeak API token (not used yet) |
-| `TS_VIRTUAL_SERVER_ID` | `""` | Virtual server ID (not used yet) |
-| `LOG_LEVEL` | `info` | Logging level |
-
-Example with custom configuration:
 ```bash
-HTTP_ADDR=:3000 LOG_LEVEL=debug go run ./cmd/server
+cp config.yaml.example config.yaml
 ```
 
-Or with Docker:
+Then edit `config.yaml` to configure your TeamSpeak servers:
+
+```yaml
+# HTTP server configuration
+http_addr: ":8080"
+log_level: "info"
+
+# TeamSpeak servers configuration
+# Each server must have a unique name which will be used in the URL path
+servers:
+  # Access via: http://localhost:8080/ts-view/production
+  production:
+    host: "ts.example.com"
+    port: 10011
+    sid: 1                   # Optional: Virtual server ID
+    username: "serveradmin"  # Optional
+    password: "secret123"    # Optional
+
+  # Access via: http://localhost:8080/ts-view/dev
+  dev:
+    host: "192.168.1.100"
+    port: 10011
+    sid: 2                   # Different virtual server ID
+```
+
+#### Configuration Options
+
+**Application Settings:**
+- `http_addr`: HTTP server listen address (default: `:8080`)
+- `log_level`: Logging level (default: `info`)
+
+**Server Configuration:**
+Each server in the `servers` map requires:
+- `host`: TeamSpeak server hostname or IP address (required)
+- `port`: ServerQuery port (default: `10011` if not specified)
+- `sid`: Virtual server ID (default: `1` if not specified)
+- `username`: ServerQuery username (optional, for authenticated connections)
+- `password`: ServerQuery password (optional, for authenticated connections)
+
+#### Environment Variables
+
+You can override the config file path using:
+- `TS_CONFIG_FILE`: Path to the configuration file (default: `config.yaml`)
+
+Example:
 ```bash
-docker run -p 3000:3000 -e HTTP_ADDR=:3000 ts-viewer
+TS_CONFIG_FILE=/etc/ts-viewer/config.yaml ./ts-viewer
+```
 ```
 
 ## Project Structure
@@ -109,16 +145,24 @@ go vet ./...
 
 ## Current Status
 
-This is an initial implementation using dummy/static data. The application currently:
+The application connects to real TeamSpeak servers via ServerQuery protocol. Current features:
 - ✅ Serves a web UI showing a TeamSpeak-like channel tree
-- ✅ Displays dummy server data (channels and clients)
-- ✅ Provides health check endpoint
-- ✅ Supports configuration via environment variables
-- ✅ Includes Docker support
+- ✅ Real-time TeamSpeak ServerQuery integration
+- ✅ Support for multiple TeamSpeak servers via configuration
+- ✅ Path-based server selection (`/ts-view/{server-name}`)
+- ✅ YAML configuration file support
+- ✅ Layered architecture (API, Business, Data layers)
+- ✅ Health check endpoint
+- ✅ Docker support
+
+Access configured servers:
+- Default dummy data: `http://localhost:8080/`
+- Real server by name: `http://localhost:8080/ts-view/{server-name}`
 
 Future enhancements will include:
-- 🔲 Real TeamSpeak API integration
-- 🔲 Live data updates
+- 🔲 Authentication support (username/password)
+- 🔲 Live data updates (WebSocket)
+- 🔲 Server selection UI
 - 🔲 Additional features
 
 ## License

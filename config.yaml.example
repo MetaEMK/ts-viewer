@@ -1,0 +1,32 @@
+# TeamSpeak Viewer Configuration
+# This file configures the HTTP server and TeamSpeak servers
+
+# HTTP server configuration
+http_addr: ":8080"
+log_level: "info"
+
+# TeamSpeak servers configuration
+# Each server must have a unique name which will be used in the URL path
+servers:
+  # Example server configuration
+  # Access via: http://localhost:8080/ts-view/production
+  production:
+    host: "ts.example.com"
+    port: 10011
+    sid: 1                   # Optional: Virtual server ID (default: 1)
+    username: "serveradmin"  # Optional: for authenticated connections
+    password: "secret123"    # Optional: for authenticated connections
+
+  # Another example server
+  # Access via: http://localhost:8080/ts-view/dev
+  dev:
+    host: "192.168.1.100"
+    port: 10011
+    # sid, username and password are optional
+
+  # Server with custom port and sid
+  # Access via: http://localhost:8080/ts-view/custom
+  custom:
+    host: "10.0.0.5"
+    port: 9987
+    sid: 2                   # Connect to virtual server ID 2

@@ -117,6 +117,70 @@ footer {
     border-top: 1px solid #e9ecef;
 }
 
+/* Error page styles */
+.error-container {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.error-title {
+    color: #e74c3c;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.error-message {
+    color: #495057;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.error-details {
+    background: #f8f9fa;
+    border-left: 4px solid #e74c3c;
+    padding: 15px 20px;
+    margin: 20px auto;
+    max-width: 600px;
+    text-align: left;
+    border-radius: 4px;
+}
+
+.error-details p {
+    color: #6c757d;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    word-wrap: break-word;
+}
+
+.error-actions {
+    margin-top: 30px;
+}
+
+.btn-primary {
+    display: inline-block;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
     body {
@@ -133,5 +197,17 @@ footer {
     
     .children {
         padding-left: 20px;
+    }
+    
+    .error-icon {
+        font-size: 3rem;
+    }
+    
+    .error-title {
+        font-size: 1.4rem;
+    }
+    
+    .error-message {
+        font-size: 1rem;
     }
 }

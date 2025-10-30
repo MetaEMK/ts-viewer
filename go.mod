@@ -6,6 +6,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/gofiber/template/html/v2 v2.1.3
 	github.com/multiplay/go-ts3 v1.2.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -24,5 +25,4 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

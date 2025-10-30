@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - TeamSpeak Viewer</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎙️ TeamSpeak Viewer</h1>
+        </header>
+        
+        <main>
+            <div class="error-container">
+                <div class="error-icon">⚠️</div>
+                <h2 class="error-title">{{ .Title }}</h2>
+                <p class="error-message">{{ .Message }}</p>
+                {{ if .Details }}
+                <div class="error-details">
+                    <p><strong>Details:</strong> {{ .Details }}</p>
+                </div>
+                {{ end }}
+                <div class="error-actions">
+                    <a href="/" class="btn-primary">Go to Home</a>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>TeamSpeak Viewer</p>
+        </footer>
+    </div>
+</body>
+</html>

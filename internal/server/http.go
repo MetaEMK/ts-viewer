@@ -21,6 +21,13 @@ type Server struct {
 	app     *fiber.App
 }
 
+// ErrorData holds data for error template rendering
+type ErrorData struct {
+	Title   string
+	Message string
+	Details string
+}
+
 // New creates a new Server instance with Fiber
 func New(cfg *config.Config) (*Server, error) {
 	// Create template engine from embedded assets
@@ -68,10 +75,27 @@ func (s *Server) App() *fiber.App {
 	return s.app
 }
 
-// handleServersOverview renders the servers overview page
-func (s *Server) handleServersOverview(c *fiber.Ctx) error {
-	// Get servers overview from service (with live data)
-	overview := s.service.GetServersOverview(c.Context())
+// renderError renders an error page with the given status code and error data
+func (s *Server) renderError(c *fiber.Ctx, status int, title, message, details string) error {
+	c.Status(status)
+	return c.Render("templates/error.tmpl", ErrorData{
+		Title:   title,
+		Message: message,
+		Details: details,
+	}, "")
+}
+
+// handleIndex renders the main TeamSpeak viewer page
+func (s *Server) handleIndex(c *fiber.Ctx) error {
+	// Fetch overview from service
+	overview, err := s.service.GetServerOverview(c.Context())
+	if err != nil {
+		log.Printf("Error fetching overview: %v", err)
+		return s.renderError(c, fiber.StatusInternalServerError,
+			"Internal Server Error",
+			"We encountered an error while loading the server overview.",
+			err.Error())
+	}
 
 	// Render template
 	return c.Render("templates/overview.tmpl", overview, "")
@@ -91,16 +115,20 @@ func (s *Server) handleTSView(c *fiber.Ctx) error {
 	serverName := c.Params("server")
 
 	if serverName == "" {
-		return c.Status(fiber.StatusBadRequest).SendString("Missing required parameter: server name")
+		return s.renderError(c, fiber.StatusBadRequest,
+			"Bad Request",
+			"The server name is required but was not provided.",
+			"Please specify a server name in the URL path.")
 	}
 
 	// Use service layer to fetch overview by server name
 	overview, err := s.service.GetServerOverviewByName(c.Context(), serverName)
 	if err != nil {
 		log.Printf("Error fetching TeamSpeak data for server '%s': %v", serverName, err)
-		return c.Status(fiber.StatusInternalServerError).SendString(
-			fmt.Sprintf("Failed to connect to TeamSpeak server '%s': %v", serverName, err),
-		)
+		return s.renderError(c, fiber.StatusInternalServerError,
+			"Connection Error",
+			fmt.Sprintf("Failed to connect to TeamSpeak server '%s'.", serverName),
+			err.Error())
 	}
 
 	// Render template

@@ -56,17 +56,51 @@ func (s *Service) ListServers() []string {
 }
 
 // GetServersOverview returns information about all configured servers
-func (s *Service) GetServersOverview() *ServersOverview {
+// This fetches live data from each server (name, online clients, channels)
+func (s *Service) GetServersOverview(ctx context.Context) *ServersOverview {
 	servers := make([]ServerInfo, 0, len(s.config.Servers))
 	for name, cfg := range s.config.Servers {
-		servers = append(servers, ServerInfo{
-			Name: name,
-			Host: cfg.Host,
-			Port: cfg.Port,
-			Sid:  cfg.Sid,
-		})
+		serverInfo := ServerInfo{
+			Name:     name,
+			IsOnline: false,
+		}
+
+		// Try to fetch live data from the server
+		provider := NewTeamSpeakProvider(cfg.Host, cfg.Port, cfg.Sid)
+		overview, err := provider.FetchOverview(ctx)
+		if err != nil {
+			// Server is offline or unreachable
+			serverInfo.ErrorMessage = err.Error()
+		} else {
+			// Server is online, collect stats
+			serverInfo.IsOnline = true
+			serverInfo.ServerName = overview.ServerName
+			serverInfo.OnlineClients = countClients(overview.Channels)
+			serverInfo.TotalChannels = countChannels(overview.Channels)
+		}
+
+		servers = append(servers, serverInfo)
 	}
 	return &ServersOverview{
 		Servers: servers,
 	}
+}
+
+// countClients recursively counts all clients in channels
+func countClients(channels []Channel) int {
+	count := 0
+	for _, ch := range channels {
+		count += len(ch.Clients)
+		count += countClients(ch.Children)
+	}
+	return count
+}
+
+// countChannels recursively counts all channels
+func countChannels(channels []Channel) int {
+	count := len(channels)
+	for _, ch := range channels {
+		count += countChannels(ch.Children)
+	}
+	return count
 }

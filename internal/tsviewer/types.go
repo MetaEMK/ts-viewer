@@ -8,10 +8,12 @@ type ServerOverview struct {
 
 // ServerInfo represents basic information about a configured server
 type ServerInfo struct {
-	Name string
-	Host string
-	Port int
-	Sid  int
+	Name          string // Config name
+	ServerName    string // Actual server name from TeamSpeak
+	OnlineClients int
+	TotalChannels int
+	IsOnline      bool
+	ErrorMessage  string
 }
 
 // ServersOverview represents the list of configured servers

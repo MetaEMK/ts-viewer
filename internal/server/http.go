@@ -58,8 +58,7 @@ func (s *Server) setupRoutes() {
 	}))
 
 	// Routes
-	s.app.Get("/", s.handleIndex)
-	s.app.Get("/servers", s.handleServersOverview)
+	s.app.Get("/", s.handleServersOverview)
 	s.app.Get("/ts-view/:server", s.handleTSView)
 	s.app.Get("/healthz", s.handleHealthz)
 }
@@ -69,17 +68,13 @@ func (s *Server) App() *fiber.App {
 	return s.app
 }
 
-// handleIndex renders the main TeamSpeak viewer page
-func (s *Server) handleIndex(c *fiber.Ctx) error {
-	// Fetch overview from service
-	overview, err := s.service.GetServerOverview(c.Context())
-	if err != nil {
-		log.Printf("Error fetching overview: %v", err)
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
-	}
+// handleServersOverview renders the servers overview page
+func (s *Server) handleServersOverview(c *fiber.Ctx) error {
+	// Get servers overview from service (with live data)
+	overview := s.service.GetServersOverview(c.Context())
 
 	// Render template
-	return c.Render("templates/index.tmpl", overview, "")
+	return c.Render("templates/overview.tmpl", overview, "")
 }
 
 // handleHealthz returns a simple health check response
@@ -87,15 +82,6 @@ func (s *Server) handleHealthz(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status": "ok",
 	})
-}
-
-// handleServersOverview renders the servers overview page
-func (s *Server) handleServersOverview(c *fiber.Ctx) error {
-	// Get servers overview from service
-	overview := s.service.GetServersOverview()
-
-	// Render template
-	return c.Render("templates/overview.tmpl", overview, "")
 }
 
 // handleTSView renders the TeamSpeak viewer page for a specific server

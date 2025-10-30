@@ -236,6 +236,23 @@ footer {
     font-size: 1.1rem;
 }
 
+.server-offline {
+    opacity: 0.7;
+    border-left-color: #dc3545;
+}
+
+.server-offline-message {
+    padding: 15px;
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+}
+
+.server-offline:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
     body {

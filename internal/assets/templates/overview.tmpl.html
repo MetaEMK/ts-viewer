@@ -10,40 +10,37 @@
     <div class="container">
         <header>
             <h1>🎙️ TeamSpeak Servers</h1>
-            <nav class="header-nav">
-                <a href="/" class="nav-link">🏠 Home</a>
-            </nav>
         </header>
         
         <main>
             {{ if .Servers }}
             <div class="servers-list">
-                <h2>Configured Servers</h2>
+                <h2>Available Servers</h2>
                 {{ range .Servers }}
-                <div class="server-card">
+                <div class="server-card {{ if not .IsOnline }}server-offline{{ end }}">
                     <div class="server-header">
-                        <span class="server-icon">🖥️</span>
-                        <span class="server-name">{{ .Name }}</span>
+                        <span class="server-icon">{{ if .IsOnline }}🟢{{ else }}🔴{{ end }}</span>
+                        <span class="server-name">{{ if .ServerName }}{{ .ServerName }}{{ else }}{{ .Name }}{{ end }}</span>
                     </div>
+                    {{ if .IsOnline }}
                     <div class="server-details">
                         <div class="server-detail">
-                            <span class="detail-label">Host:</span>
-                            <span class="detail-value">{{ .Host }}</span>
+                            <span class="detail-label">👥 Online Users:</span>
+                            <span class="detail-value">{{ .OnlineClients }}</span>
                         </div>
                         <div class="server-detail">
-                            <span class="detail-label">Port:</span>
-                            <span class="detail-value">{{ .Port }}</span>
+                            <span class="detail-label">📁 Channels:</span>
+                            <span class="detail-value">{{ .TotalChannels }}</span>
                         </div>
-                        {{ if .Sid }}
-                        <div class="server-detail">
-                            <span class="detail-label">Server ID:</span>
-                            <span class="detail-value">{{ .Sid }}</span>
-                        </div>
-                        {{ end }}
                     </div>
                     <div class="server-actions">
                         <a href="/ts-view/{{ .Name }}" class="btn btn-primary">View Server</a>
                     </div>
+                    {{ else }}
+                    <div class="server-offline-message">
+                        <p>Server is currently offline or unreachable</p>
+                    </div>
+                    {{ end }}
                 </div>
                 {{ end }}
             </div>

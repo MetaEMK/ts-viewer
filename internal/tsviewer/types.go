@@ -6,6 +6,19 @@ type ServerOverview struct {
 	Channels   []Channel
 }
 
+// ServerInfo represents basic information about a configured server
+type ServerInfo struct {
+	Name string
+	Host string
+	Port int
+	Sid  int
+}
+
+// ServersOverview represents the list of configured servers
+type ServersOverview struct {
+	Servers []ServerInfo
+}
+
 // Channel represents a TeamSpeak channel
 type Channel struct {
 	ID       int

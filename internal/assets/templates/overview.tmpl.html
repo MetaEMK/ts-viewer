@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeamSpeak Servers - Overview</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎙️ TeamSpeak Servers</h1>
+            <nav class="header-nav">
+                <a href="/" class="nav-link">🏠 Home</a>
+            </nav>
+        </header>
+        
+        <main>
+            {{ if .Servers }}
+            <div class="servers-list">
+                <h2>Configured Servers</h2>
+                {{ range .Servers }}
+                <div class="server-card">
+                    <div class="server-header">
+                        <span class="server-icon">🖥️</span>
+                        <span class="server-name">{{ .Name }}</span>
+                    </div>
+                    <div class="server-details">
+                        <div class="server-detail">
+                            <span class="detail-label">Host:</span>
+                            <span class="detail-value">{{ .Host }}</span>
+                        </div>
+                        <div class="server-detail">
+                            <span class="detail-label">Port:</span>
+                            <span class="detail-value">{{ .Port }}</span>
+                        </div>
+                        {{ if .Sid }}
+                        <div class="server-detail">
+                            <span class="detail-label">Server ID:</span>
+                            <span class="detail-value">{{ .Sid }}</span>
+                        </div>
+                        {{ end }}
+                    </div>
+                    <div class="server-actions">
+                        <a href="/ts-view/{{ .Name }}" class="btn btn-primary">View Server</a>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+            {{ else }}
+            <div class="no-servers">
+                <p>No servers configured. Please add servers to your configuration file.</p>
+            </div>
+            {{ end }}
+        </main>
+        
+        <footer>
+            <p>TeamSpeak Viewer - Server Overview</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -59,6 +59,7 @@ func (s *Server) setupRoutes() {
 
 	// Routes
 	s.app.Get("/", s.handleIndex)
+	s.app.Get("/servers", s.handleServersOverview)
 	s.app.Get("/ts-view/:server", s.handleTSView)
 	s.app.Get("/healthz", s.handleHealthz)
 }
@@ -86,6 +87,15 @@ func (s *Server) handleHealthz(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status": "ok",
 	})
+}
+
+// handleServersOverview renders the servers overview page
+func (s *Server) handleServersOverview(c *fiber.Ctx) error {
+	// Get servers overview from service
+	overview := s.service.GetServersOverview()
+
+	// Render template
+	return c.Render("templates/overview.tmpl", overview, "")
 }
 
 // handleTSView renders the TeamSpeak viewer page for a specific server

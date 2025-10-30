@@ -54,3 +54,19 @@ func (s *Service) ListServers() []string {
 	}
 	return names
 }
+
+// GetServersOverview returns information about all configured servers
+func (s *Service) GetServersOverview() *ServersOverview {
+	servers := make([]ServerInfo, 0, len(s.config.Servers))
+	for name, cfg := range s.config.Servers {
+		servers = append(servers, ServerInfo{
+			Name: name,
+			Host: cfg.Host,
+			Port: cfg.Port,
+			Sid:  cfg.Sid,
+		})
+	}
+	return &ServersOverview{
+		Servers: servers,
+	}
+}

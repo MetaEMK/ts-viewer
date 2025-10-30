@@ -32,6 +32,24 @@ header h1 {
     font-weight: 600;
 }
 
+.header-nav {
+    margin-top: 15px;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.2s;
+    display: inline-block;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 main {
     padding: 30px;
 }

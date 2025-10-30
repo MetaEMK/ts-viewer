@@ -29,7 +29,7 @@ type ErrorData struct {
 }
 
 // New creates a new Server instance with Fiber
-func New(provider tsviewer.Provider, cfg *config.Config) (*Server, error) {
+func New(cfg *config.Config) (*Server, error) {
 	// Create template engine from embedded assets
 	engine := html.NewFileSystem(http.FS(assets.FS), ".html")
 
@@ -39,7 +39,7 @@ func New(provider tsviewer.Provider, cfg *config.Config) (*Server, error) {
 	})
 
 	// Create service layer
-	service := tsviewer.NewService(provider, cfg)
+	service := tsviewer.NewService(cfg)
 
 	s := &Server{
 		service: service,
@@ -65,7 +65,7 @@ func (s *Server) setupRoutes() {
 	}))
 
 	// Routes
-	s.app.Get("/", s.handleIndex)
+	s.app.Get("/", s.handleServersOverview)
 	s.app.Get("/ts-view/:server", s.handleTSView)
 	s.app.Get("/healthz", s.handleHealthz)
 }
@@ -98,7 +98,7 @@ func (s *Server) handleIndex(c *fiber.Ctx) error {
 	}
 
 	// Render template
-	return c.Render("templates/index.tmpl", overview, "")
+	return c.Render("templates/overview.tmpl", overview, "")
 }
 
 // handleHealthz returns a simple health check response

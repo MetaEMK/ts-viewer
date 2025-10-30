@@ -22,7 +22,7 @@ type Server struct {
 }
 
 // New creates a new Server instance with Fiber
-func New(provider tsviewer.Provider, cfg *config.Config) (*Server, error) {
+func New(cfg *config.Config) (*Server, error) {
 	// Create template engine from embedded assets
 	engine := html.NewFileSystem(http.FS(assets.FS), ".html")
 
@@ -32,7 +32,7 @@ func New(provider tsviewer.Provider, cfg *config.Config) (*Server, error) {
 	})
 
 	// Create service layer
-	service := tsviewer.NewService(provider, cfg)
+	service := tsviewer.NewService(cfg)
 
 	s := &Server{
 		service: service,

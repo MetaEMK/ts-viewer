@@ -8,7 +8,6 @@ import (
 
 	"github.com/MetaEMK/ts-viewer/internal/config"
 	"github.com/MetaEMK/ts-viewer/internal/server"
-	"github.com/MetaEMK/ts-viewer/internal/tsviewer"
 )
 
 func main() {
@@ -19,11 +18,8 @@ func main() {
 	}
 	log.Printf("Starting TeamSpeak Viewer with config: %s", cfg)
 
-	// Create provider (using dummy implementation for testing)
-	provider := tsviewer.NewDummyProvider()
-
 	// Create server with Fiber
-	srv, err := server.New(provider, cfg)
+	srv, err := server.New(cfg)
 	if err != nil {
 		log.Fatalf("Failed to create server: %v", err)
 	}

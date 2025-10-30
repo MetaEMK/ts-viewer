@@ -9,21 +9,14 @@ import (
 
 // Service handles business logic for TeamSpeak operations
 type Service struct {
-	defaultProvider Provider
-	config          *config.Config
+	config *config.Config
 }
 
 // NewService creates a new TeamSpeak service instance
-func NewService(defaultProvider Provider, cfg *config.Config) *Service {
+func NewService(cfg *config.Config) *Service {
 	return &Service{
-		defaultProvider: defaultProvider,
-		config:          cfg,
+		config: cfg,
 	}
-}
-
-// GetServerOverview retrieves the server overview from the default provider
-func (s *Service) GetServerOverview(ctx context.Context) (*ServerOverview, error) {
-	return s.defaultProvider.FetchOverview(ctx)
 }
 
 // GetServerOverviewByName retrieves the server overview from a configured TeamSpeak server

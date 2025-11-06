@@ -45,7 +45,9 @@ func (t *TeamSpeakProvider) FetchOverview(ctx context.Context) (*ServerOverview,
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to TeamSpeak server at %s: %w", addr, err)
 	}
-	defer client.Close()
+	defer func() {
+		_ = client.Close()
+	}()
 
 	// Use the configured virtual server
 	if err := client.Use(t.sid); err != nil {
@@ -121,11 +123,11 @@ func (t *TeamSpeakProvider) getClientsInChannel(clients []*ts3.OnlineClient, cha
 			}
 
 			// Check mute/deaf status if available
-			if c.OnlineClientExt != nil && c.OnlineClientExt.OnlineClientVoice != nil {
-				if c.OnlineClientExt.OnlineClientVoice.InputMuted != nil && *c.OnlineClientExt.OnlineClientVoice.InputMuted {
+			if c.OnlineClientExt != nil && c.OnlineClientVoice != nil {
+				if c.InputMuted != nil && *c.InputMuted {
 					client.IsMuted = true
 				}
-				if c.OnlineClientExt.OnlineClientVoice.OutputMuted != nil && *c.OnlineClientExt.OnlineClientVoice.OutputMuted {
+				if c.OutputMuted != nil && *c.OutputMuted {
 					client.IsDeaf = true
 				}
 			}

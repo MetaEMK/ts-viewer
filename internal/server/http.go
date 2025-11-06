@@ -85,17 +85,10 @@ func (s *Server) renderError(c *fiber.Ctx, status int, title, message, details s
 	}, "")
 }
 
-// handleIndex renders the main TeamSpeak viewer page
-func (s *Server) handleIndex(c *fiber.Ctx) error {
+// handleServersOverview renders the main TeamSpeak viewer page
+func (s *Server) handleServersOverview(c *fiber.Ctx) error {
 	// Fetch overview from service
-	overview, err := s.service.GetServerOverview(c.Context())
-	if err != nil {
-		log.Printf("Error fetching overview: %v", err)
-		return s.renderError(c, fiber.StatusInternalServerError,
-			"Internal Server Error",
-			"We encountered an error while loading the server overview.",
-			err.Error())
-	}
+	overview := s.service.GetServersOverview(c.Context())
 
 	// Render template
 	return c.Render("templates/overview.tmpl", overview, "")

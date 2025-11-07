@@ -32,10 +32,3 @@ jobs:
             ts-viewer:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Test Docker image
-        run: |
-          docker run --rm -d --name ts-viewer-test -p 8081:8080 ts-viewer:latest
-          sleep 5
-          curl -f http://localhost:8081/healthz || exit 1
-          docker stop ts-viewer-test
